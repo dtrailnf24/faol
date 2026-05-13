@@ -13,7 +13,7 @@ FAoL is an automated pipeline that ingests LoRaWAN traffic captures (real or syn
 **Requirements:** Docker
 
 ```bash
-git clone --recurse-submodules https://github.com/YOUR_USERNAME/faol.git
+git clone --recurse-submodules https://github.com/dtrailnf24/faol.git
 cd faol
 docker build -t faol .
 
