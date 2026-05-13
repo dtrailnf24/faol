@@ -1,0 +1,9 @@
+services:
+  faol:
+    build: .
+    volumes:
+      - ./data:/app/data:ro       # mount PCAPs without baking 387 MB into the image
+    environment:
+      - SCYTHER_BIN=/usr/local/bin/scyther
+      - LOOPBACK_IFACE=lo
+    network_mode: host             # required for --live loopback capture (UDP/1700)

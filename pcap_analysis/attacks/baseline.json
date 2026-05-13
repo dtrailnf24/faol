@@ -1,0 +1,13 @@
+{
+  "name": "baseline",
+  "description": "Normal OTAA join with fresh nonces. Formal model of the standard protocol. In LoRaWAN 1.0, Nisynch FAILS on ED — a known design flaw where the ED cannot verify the JoinAccept came from the real NS.",
+  "anomaly_trigger": null,
+  "template": "templates/baseline.spdl",
+  "template_vars": ["deveui", "safe_id"],
+  "max_scenarios": 3,
+  "device_profile": "normal",
+  "expected_claims": [
+    {"protocol_prefix": "Baseline", "role_suffix": "ED", "claim_type": "Nisynch", "result": "Fail"},
+    {"protocol_prefix": "Baseline", "role_suffix": "NS", "claim_type": "Nisynch", "result": "Ok"}
+  ]
+}

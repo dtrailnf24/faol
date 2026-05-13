@@ -1,0 +1,25 @@
+# Virtual environments
+.venv/
+pcap_analysis/.venv/
+
+# Large data files — mount as volume instead
+data/
+
+# Non-essential project files
+papers/
+slides/
+legacy/
+*.zip
+
+# Precompiled macOS binaries — rebuilt inside Docker
+lwnsimulator
+
+# IDE / tool config
+.claude/
+.idea/
+.git/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo

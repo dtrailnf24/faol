@@ -1,0 +1,123 @@
+# LoRaWAN 1.1 OTAA Join Procedure — Scyther Formal Model
+#
+# Source: Eldefrawy et al., "Formal security analysis of LoRaWAN",
+#         Computer Networks, vol. 148, pp. 328-339, 2019.
+#         Constructed from the paper appendix (1.1 model, Table 2).
+#         Fixes applied to make the model runnable in Scyther:
+#           (1) {…}dec notation removed; plain {…}k(Dev,Join) used.
+#           (2) All padding constants declared.
+#           (3) Appkey declared as a secret function.
+#
+# Roles:
+#   Dev  = End Device
+#   Join = Network Server / Join Server (NwkKey holder)
+#
+# Key improvements over 1.0:
+#   - NwkKey = k(Dev,Join) used for network-layer keys; AppKey separate (Appkey function)
+#   - Six session keys derived instead of two
+#   - MIC over JoinAccept binds response to session (server authentication)
+#
+# Expected Scyther results (Eldefrawy Table 2, LoRaWAN 1.1):
+#   Dev:  Running=Ok, Alive=Ok, Weakagree=Ok, Niagree=Ok, Nisynch=Ok,
+#         SKR(FNwkSIntKey)=Ok, SKR(SNwkSIntKey)=Ok, SKR(NwkSEncKey)=Ok,
+#         SKR(AppSKey)=Ok, SKR(JSEncKey)=Ok, SKR(JSIntKey)=Ok
+#   Join: Running=Ok, Alive=Ok, Weakagree=Ok, Niagree=Ok, Nisynch=Ok,
+#         SKR(FNwkSIntKey)=Ok, SKR(SNwkSIntKey)=Ok, SKR(NwkSEncKey)=Ok,
+#         SKR(AppSKey)=Ok, SKR(JSEncKey)=Ok, SKR(JSIntKey)=Ok
+
+const pad01, pad02, pad03, pad04, pad05, pad06, pad16: Nonce;
+secret Appkey: Function;
+
+protocol LoRaWAN-OTAA-v1point1 (Dev, Join)
+{
+    role Dev {
+        fresh DevNonce:    Nonce;
+        fresh MHDRDev:     Nonce;
+        var MHDRSrv:       Nonce;
+        var JoinNonce:     Nonce;
+        var NetID:         Nonce;
+        var DevAddr:       Nonce;
+        var DLSettings:    Nonce;
+        var RxDelay:       Nonce;
+        var CFList:        Nonce;
+        var JoinReqType:   Nonce;
+
+        macro JSIntKey = {pad06, Dev, pad16}k(Dev,Join)
+        macro MIC = {JoinReqType, Join, DevNonce, MHDRSrv, JoinNonce, NetID, DevAddr, DLSettings, RxDelay, CFList}JSIntKey
+
+        send_1(Dev, Join,
+               (MHDRDev, Dev, Join, DevNonce),
+               {MHDRDev, Dev, Join, DevNonce}k(Dev,Join));
+
+        recv_2(Join, Dev,
+               (MHDRSrv),
+               {JoinNonce, NetID, DevAddr, DLSettings, RxDelay, CFList, MIC}k(Dev,Join),
+               MIC);
+
+        macro FNwkSIntKey = {pad01, JoinNonce, Join, DevNonce, pad16}k(Dev,Join)
+        macro SNwkSIntKey  = {pad03, JoinNonce, Join, DevNonce, pad16}k(Dev,Join)
+        macro NwkSEncKey   = {pad04, JoinNonce, Join, DevNonce, pad16}k(Dev,Join)
+        macro AppSKey      = {pad02, JoinNonce, Join, DevNonce, pad16}Appkey
+        macro JSEncKey     = {pad05, Dev, pad16}k(Dev,Join)
+
+        claim(Dev, Running, Join, DevNonce);
+        claim(Dev, Alive);
+        claim(Dev, Weakagree);
+        claim(Dev, Niagree);
+        claim(Dev, Nisynch);
+        claim(Dev, SKR, FNwkSIntKey);
+        claim(Dev, SKR, SNwkSIntKey);
+        claim(Dev, SKR, NwkSEncKey);
+        claim(Dev, SKR, AppSKey);
+        claim(Dev, SKR, JSEncKey);
+        claim(Dev, SKR, JSIntKey);
+    }
+
+    role Join {
+        fresh JoinNonce:   Nonce;
+        fresh MHDRSrv:     Nonce;
+        fresh NetID:       Nonce;
+        fresh DevAddr:     Nonce;
+        fresh DLSettings:  Nonce;
+        fresh RxDelay:     Nonce;
+        fresh CFList:      Nonce;
+        fresh NonceList:   Nonce;
+        fresh JoinReqType: Nonce;
+        var DevNonce:      Nonce;
+        var MHDRDev:       Nonce;
+
+        recv_1(Dev, Join,
+               (MHDRDev, Dev, Join, DevNonce),
+               {MHDRDev, Dev, Join, DevNonce}k(Dev,Join));
+
+        # JSIntKey and MIC defined before send_2 — both appear inside the message terms
+        macro JSIntKey = {pad06, Dev, pad16}k(Dev,Join)
+        macro MIC = {JoinReqType, Join, DevNonce, MHDRSrv, JoinNonce, NetID, DevAddr, DLSettings, RxDelay, CFList}JSIntKey
+
+        send_2(Join, Dev,
+               (MHDRSrv),
+               {JoinNonce, NetID, DevAddr, DLSettings, RxDelay, CFList, MIC}k(Dev,Join),
+               MIC);
+
+        not match (DevNonce, NonceList);
+        macro NonceList = (NonceList, DevNonce)
+
+        macro FNwkSIntKey = {pad01, JoinNonce, Join, DevNonce, pad16}k(Dev,Join)
+        macro SNwkSIntKey  = {pad03, JoinNonce, Join, DevNonce, pad16}k(Dev,Join)
+        macro NwkSEncKey   = {pad04, JoinNonce, Join, DevNonce, pad16}k(Dev,Join)
+        macro AppSKey      = {pad02, JoinNonce, Join, DevNonce, pad16}Appkey
+        macro JSEncKey     = {pad05, Dev, pad16}k(Dev,Join)
+
+        claim(Join, Running, Dev, JoinNonce);
+        claim(Join, Alive);
+        claim(Join, Weakagree);
+        claim(Join, Niagree);
+        claim(Join, Nisynch);
+        claim(Join, SKR, FNwkSIntKey);
+        claim(Join, SKR, SNwkSIntKey);
+        claim(Join, SKR, NwkSEncKey);
+        claim(Join, SKR, AppSKey);
+        claim(Join, SKR, JSEncKey);
+        claim(Join, SKR, JSIntKey);
+    }
+}

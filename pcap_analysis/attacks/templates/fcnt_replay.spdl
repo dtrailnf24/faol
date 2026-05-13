@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SCENARIO: Data Frame Replay (DevAddr {devaddr})
+# ─────────────────────────────────────────────────────────────────────────────
+# FCnt anomaly detected: {anomaly_type}
+# DevAddr {devaddr} transmitted frames with a non-monotonic or repeated counter.
+# In LoRaWAN, a receiver MUST reject any uplink with FCnt <= last accepted value.
+# Expected: Nisynch FAILS on Receiver.
+
+const frozenFCnt{safe_id}: Nonce;  # Fixed FCnt — anomaly type: {anomaly_type}
+
+protocol DataReplay{safe_id}(Sender{safe_id}, Receiver{safe_id}) {{
+
+    role Sender{safe_id} {{
+        fresh Payload: Nonce;
+
+        send_1(Sender{safe_id}, Receiver{safe_id},
+               {{Payload}}k(Sender{safe_id}, Receiver{safe_id}),
+               frozenFCnt{safe_id});
+
+        claim(Sender{safe_id}, Secret, Payload);
+    }}
+
+    role Receiver{safe_id} {{
+        var Payload: Nonce;
+
+        recv_1(Sender{safe_id}, Receiver{safe_id},
+               {{Payload}}k(Sender{safe_id}, Receiver{safe_id}),
+               frozenFCnt{safe_id});
+
+        claim(Receiver{safe_id}, Nisynch);
+    }}
+}}
+

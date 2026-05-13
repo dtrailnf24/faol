@@ -1,0 +1,12 @@
+{
+  "name": "fcnt_replay",
+  "description": "FCnt anomaly (decrease or repeat) detected in data session. A receiver that does not enforce strict FCnt monotonicity accepts replayed frames. Nisynch FAILS on Receiver when 3+ replay protocols are present.",
+  "anomaly_trigger": ["FCnt_fcnt_decrease", "FCnt_fcnt_repeat"],
+  "template": "templates/fcnt_replay.spdl",
+  "template_vars": ["devaddr", "anomaly_type", "pcap", "safe_id"],
+  "max_scenarios": 3,
+  "device_profile": "normal",
+  "expected_claims": [
+    {"protocol_prefix": "DataReplay", "role_suffix": "Receiver", "claim_type": "Nisynch", "result": "Fail"}
+  ]
+}

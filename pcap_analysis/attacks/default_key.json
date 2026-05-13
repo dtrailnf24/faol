@@ -1,0 +1,13 @@
+{
+  "name": "default_key",
+  "description": "Device using a publicly-known AppKey (e.g. Semtech default). Adversary can derive AppSKey and NwkSKey. Secret claims FAIL for both derived keys.",
+  "anomaly_trigger": "uses_default_key",
+  "template": "templates/default_key.spdl",
+  "template_vars": ["deveui", "appkey", "appkey_const", "safe_id"],
+  "max_scenarios": 5,
+  "device_profile": "normal",
+  "expected_claims": [
+    {"protocol_prefix": "DefaultKey", "role_suffix": "ED", "claim_type": "Secret", "result": "Fail"},
+    {"protocol_prefix": "DefaultKey", "role_suffix": "NS", "claim_type": "Secret", "result": "Fail"}
+  ]
+}

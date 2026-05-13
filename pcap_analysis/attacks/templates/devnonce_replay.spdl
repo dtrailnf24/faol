@@ -1,0 +1,49 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SCENARIO: DevNonce Replay (device {deveui}, DevNonce {devnonce})
+# ─────────────────────────────────────────────────────────────────────────────
+# DevNonce {devnonce} was seen multiple times for this device.
+# If the NS does not properly track used DevNonces (as spec requires),
+# it may respond to a replayed JoinReq with a new JoinAccept.
+# Expected: Nisynch FAILS — ED cannot confirm it is talking to the real NS.
+
+const devnonce{safe_id}: Nonce;  # Fixed — observed repeated DevNonce {devnonce}
+
+protocol Replay{safe_id}(ED{safe_id}, NS{safe_id}) {{
+
+    role ED{safe_id} {{
+        var AppNonce: Nonce;
+
+        send_1(ED{safe_id}, NS{safe_id},
+               ED{safe_id}, NS{safe_id}, devnonce{safe_id},
+               {{ED{safe_id}, NS{safe_id}, devnonce{safe_id}}}k(ED{safe_id}, NS{safe_id}));
+
+        recv_2(NS{safe_id}, ED{safe_id},
+               {{AppNonce, NS{safe_id}}}k(ED{safe_id}, NS{safe_id}));
+
+        claim(ED{safe_id}, Alive);
+        claim(ED{safe_id}, Weakagree);
+        claim(ED{safe_id}, Niagree);
+        claim(ED{safe_id}, Nisynch);
+        claim(ED{safe_id}, Secret, appSKey(k(ED{safe_id}, NS{safe_id}), AppNonce, devnonce{safe_id}));
+        claim(ED{safe_id}, Secret, nwkSKey(k(ED{safe_id}, NS{safe_id}), AppNonce, devnonce{safe_id}));
+    }}
+
+    role NS{safe_id} {{
+        fresh AppNonce: Nonce;
+
+        recv_1(ED{safe_id}, NS{safe_id},
+               ED{safe_id}, NS{safe_id}, devnonce{safe_id},
+               {{ED{safe_id}, NS{safe_id}, devnonce{safe_id}}}k(ED{safe_id}, NS{safe_id}));
+
+        send_2(NS{safe_id}, ED{safe_id},
+               {{AppNonce, NS{safe_id}}}k(ED{safe_id}, NS{safe_id}));
+
+        claim(NS{safe_id}, Alive);
+        claim(NS{safe_id}, Weakagree);
+        claim(NS{safe_id}, Niagree);
+        claim(NS{safe_id}, Nisynch);
+        claim(NS{safe_id}, Secret, appSKey(k(ED{safe_id}, NS{safe_id}), AppNonce, devnonce{safe_id}));
+        claim(NS{safe_id}, Secret, nwkSKey(k(ED{safe_id}, NS{safe_id}), AppNonce, devnonce{safe_id}));
+    }}
+}}
+

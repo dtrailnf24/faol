@@ -1,0 +1,101 @@
+# LoRaWAN 1.0.x OTAA Join Procedure — Scyther Formal Model
+#
+# Source: Eldefrawy et al., "Formal security analysis of LoRaWAN",
+#         Computer Networks, vol. 148, pp. 328-339, 2019.
+#         Adapted from the runnable SPDL in the paper's appendix (v1.0 model).
+#
+# Roles:
+#   Dev  = End Device
+#   Join = Network Server / Application Server (single entity in 1.0)
+#
+# LoRaWAN 1.0 Join (OTAA) procedure:
+#   1. Dev  -> Join: (MHDRDev, Dev, Join, DevNonce),
+#                     {MHDRDev, Dev, Join, DevNonce}k(Dev,Join)
+#   2. Join -> Dev:  (MHDRSrv),
+#                     {AppNonce, NetID, DevAddr, DLSettings, RxDelay, CFList}k(Dev,Join)
+#
+# Both parties then derive:
+#   NwkSKey = AES(k(Dev,Join), pad01 | AppNonce | Join | DevNonce | pad16)
+#   AppSKey = AES(k(Dev,Join), pad02 | AppNonce | Join | DevNonce | pad16)
+#
+# Known vulnerability modeled here:
+#   The JoinAccept payload does NOT bind to DevNonce. Join's response can be
+#   replayed across Dev sessions — Scyther finds Niagree and Nisynch fail on Dev.
+#
+# Expected Scyther results (Eldefrawy Table 2, LoRaWAN 1.0):
+#   Dev:  Running=Ok, Alive=Ok, Weakagree=Ok, Niagree=FAIL, Nisynch=FAIL,
+#         SKR(NwkSKey)=Ok, SKR(AppSKey)=Ok
+#   Join: Running=Ok, Alive=Ok, Weakagree=Ok, Niagree=Ok, Nisynch=Ok,
+#         SKR(NwkSKey)=Ok, SKR(AppSKey)=Ok
+
+const pad01, pad02, pad16: Nonce;
+
+protocol LoRaWAN-OTAA-v1point0 (Dev, Join)
+{
+    role Dev {
+        fresh DevNonce:   Nonce;
+        fresh MHDRDev:    Nonce;
+        var MHDRSrv:      Nonce;
+        var AppNonce:     Nonce;
+        var NetID:        Nonce;
+        var DevAddr:      Nonce;
+        var DLSettings:   Nonce;
+        var RxDelay:      Nonce;
+        var CFList:       Nonce;
+
+        # JoinReq: plaintext header + integrity-protected payload
+        send_1(Dev, Join,
+               (MHDRDev, Dev, Join, DevNonce),
+               {MHDRDev, Dev, Join, DevNonce}k(Dev,Join));
+
+        # JoinAccept: encrypted with AppKey = k(Dev,Join)
+        # NOTE: DevNonce is NOT inside this payload — root cause of Niagree/Nisynch failure
+        recv_2(Join, Dev,
+               (MHDRSrv),
+               {AppNonce, NetID, DevAddr, DLSettings, RxDelay, CFList}k(Dev,Join));
+
+        macro NwkSKey = {pad01, AppNonce, Join, DevNonce, pad16}k(Dev,Join)
+        macro AppSKey = {pad02, AppNonce, Join, DevNonce, pad16}k(Dev,Join)
+
+        claim(Dev, Running, Join, DevNonce);
+        claim(Dev, Alive);
+        claim(Dev, Weakagree);
+        claim(Dev, Niagree);                   # EXPECTED: FAIL
+        claim(Dev, Nisynch);                   # EXPECTED: FAIL
+        claim(Dev, SKR, NwkSKey);
+        claim(Dev, SKR, AppSKey);
+    }
+
+    role Join {
+        fresh AppNonce:   Nonce;
+        fresh MHDRSrv:    Nonce;
+        fresh NetID:      Nonce;
+        fresh DevAddr:    Nonce;
+        fresh DLSettings: Nonce;
+        fresh RxDelay:    Nonce;
+        fresh CFList:     Nonce;
+        var DevNonce:     Nonce;
+        var MHDRDev:      Nonce;
+
+        # Receive JoinReq, verify integrity under k(Dev,Join)
+        recv_1(Dev, Join,
+               (MHDRDev, Dev, Join, DevNonce),
+               {MHDRDev, Dev, Join, DevNonce}k(Dev,Join));
+
+        # Send JoinAccept encrypted under AppKey = k(Dev,Join)
+        send_2(Join, Dev,
+               (MHDRSrv),
+               {AppNonce, NetID, DevAddr, DLSettings, RxDelay, CFList}k(Dev,Join));
+
+        macro NwkSKey = {pad01, AppNonce, Join, DevNonce, pad16}k(Dev,Join)
+        macro AppSKey = {pad02, AppNonce, Join, DevNonce, pad16}k(Dev,Join)
+
+        claim(Join, Running, Dev, AppNonce);
+        claim(Join, Alive);
+        claim(Join, Weakagree);
+        claim(Join, Niagree);
+        claim(Join, Nisynch);
+        claim(Join, SKR, NwkSKey);
+        claim(Join, SKR, AppSKey);
+    }
+}

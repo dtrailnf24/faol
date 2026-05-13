@@ -1,0 +1,48 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SCENARIO: Baseline Normal Device (device {deveui})
+# ─────────────────────────────────────────────────────────────────────────────
+# Normal OTAA join with fresh nonces and no anomalies detected.
+# This models the ideal protocol execution.
+# Expected in LoRaWAN 1.0: Nisynch FAILS on ED (protocol design flaw).
+
+protocol Baseline{safe_id}(ED{safe_id}, NS{safe_id}) {{
+
+    role ED{safe_id} {{
+        fresh DevNonce: Nonce;
+        var AppNonce:   Nonce;
+
+        send_1(ED{safe_id}, NS{safe_id},
+               ED{safe_id}, NS{safe_id}, DevNonce,
+               {{ED{safe_id}, NS{safe_id}, DevNonce}}k(ED{safe_id}, NS{safe_id}));
+
+        recv_2(NS{safe_id}, ED{safe_id},
+               {{AppNonce, NS{safe_id}}}k(ED{safe_id}, NS{safe_id}));
+
+        claim(ED{safe_id}, Alive);
+        claim(ED{safe_id}, Weakagree);
+        claim(ED{safe_id}, Niagree);
+        claim(ED{safe_id}, Nisynch);
+        claim(ED{safe_id}, Secret, appSKey(k(ED{safe_id}, NS{safe_id}), AppNonce, DevNonce));
+        claim(ED{safe_id}, Secret, nwkSKey(k(ED{safe_id}, NS{safe_id}), AppNonce, DevNonce));
+    }}
+
+    role NS{safe_id} {{
+        var DevNonce:    Nonce;
+        fresh AppNonce:  Nonce;
+
+        recv_1(ED{safe_id}, NS{safe_id},
+               ED{safe_id}, NS{safe_id}, DevNonce,
+               {{ED{safe_id}, NS{safe_id}, DevNonce}}k(ED{safe_id}, NS{safe_id}));
+
+        send_2(NS{safe_id}, ED{safe_id},
+               {{AppNonce, NS{safe_id}}}k(ED{safe_id}, NS{safe_id}));
+
+        claim(NS{safe_id}, Alive);
+        claim(NS{safe_id}, Weakagree);
+        claim(NS{safe_id}, Niagree);
+        claim(NS{safe_id}, Nisynch);
+        claim(NS{safe_id}, Secret, appSKey(k(ED{safe_id}, NS{safe_id}), AppNonce, DevNonce));
+        claim(NS{safe_id}, Secret, nwkSKey(k(ED{safe_id}, NS{safe_id}), AppNonce, DevNonce));
+    }}
+}}
+

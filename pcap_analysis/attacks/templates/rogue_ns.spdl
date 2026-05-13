@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SCENARIO: Rogue NS / Unsolicited JoinAccept (frame {frame})
+# ─────────────────────────────────────────────────────────────────────────────
+# A JoinAccept was observed with no matching JoinReq in the capture.
+# This may indicate a rogue NS or MITM that sent a JoinAccept to force
+# a device to re-join under the adversary's chosen session keys.
+# Expected: Nisynch FAILS on ED role.
+
+protocol RogueNSframe{frame}(EDrogue, NSrogue) {{
+
+    role EDrogue {{
+        fresh DevNonce: Nonce;
+        var AppNonce:   Nonce;
+
+        send_1(EDrogue, NSrogue,
+               EDrogue, NSrogue, DevNonce,
+               {{EDrogue, NSrogue, DevNonce}}k(EDrogue, NSrogue));
+
+        recv_2(NSrogue, EDrogue,
+               {{AppNonce, NSrogue}}k(EDrogue, NSrogue));
+
+        claim(EDrogue, Alive);
+        claim(EDrogue, Weakagree);
+        claim(EDrogue, Niagree);
+        claim(EDrogue, Nisynch);
+        claim(EDrogue, Secret, appSKey(k(EDrogue, NSrogue), AppNonce, DevNonce));
+        claim(EDrogue, Secret, nwkSKey(k(EDrogue, NSrogue), AppNonce, DevNonce));
+    }}
+
+    role NSrogue {{
+        var DevNonce:    Nonce;
+        fresh AppNonce:  Nonce;
+
+        recv_1(EDrogue, NSrogue,
+               EDrogue, NSrogue, DevNonce,
+               {{EDrogue, NSrogue, DevNonce}}k(EDrogue, NSrogue));
+
+        send_2(NSrogue, EDrogue,
+               {{AppNonce, NSrogue}}k(EDrogue, NSrogue));
+
+        claim(NSrogue, Alive);
+        claim(NSrogue, Weakagree);
+        claim(NSrogue, Niagree);
+        claim(NSrogue, Nisynch);
+    }}
+}}
+

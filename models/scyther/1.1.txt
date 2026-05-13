@@ -1,0 +1,66 @@
+// The protocol is running between End Device (Dev) and Network Server/Join Server (Join).
+// The predefined shared key (NwkKey) between End Device and Server is k(Dev,Join).
+// dec models a decryption function that is invertible by an encryption function (enc)
+// Declaration of padding strings (pad01, pad02, ...) omitted
+// Declaration of Appkey and NonceList as secrets omitted
+protocol LoRaWAN-OTAA-v1point1 (Dev,Join)
+{ role Dev {
+fresh DevNonce: Nonce;
+fresh MHDRDev: Nonce;
+var MHDRSrv: Nonce;
+var JoinNonce: Nonce;
+var NetID: Nonce;
+var DevAddr: Nonce;
+var DLSettings: Nonce;
+var RxDelay: Nonce;
+var CFList: Nonce;
+var JoinReqType: Nonce;
+macro JSIntKey={pad06,Dev,pad16 }k(Dev,Join);
+macro MIC={JoinReqType,Join,DevNonce,MHDRSrv,JoinNonce,NetID,DevAddr,DLSettings,RxDelay,CFList}JSIntKey;
+send_1(Dev,Join,(MHDRDev,Dev,Join,DevNonce),{MHDRDev,Dev,Join,DevNonce}k(Dev,Join));
+recv_2 (Join,Dev, (MHDRSrv),{{JoinNonce,NetID,DevAddr,DLSettings,RxDelay,CFList,MIC}dec} k(Dev,Join),MIC);
+macro FNwkSIntKey={pad01,JoinNonce,Join,DevNonce,pad16}k(Dev,Join);
+macro SNwkSIntKey={pad03,JoinNonce,Join,DevNonce,pad16}k(Dev,Join);
+macro NwkSEncKey={pad04,JoinNonce,Join,DevNonce,pad16}k(Dev,Join);
+macro AppSKey={pad02,JoinNonce,Join,DevNonce, pad16 }Appkey;
+macro JSEncKey={pad05,Dev,pad16}k(Dev,Join);
+claim(Dev,Running,Join,DevNonce); //checks that Dev agrees with Join on SrvNonce
+claim(Dev,Alive); //assures the Aliveness of Dev
+claim(Dev,Weakagree); //minimum agreement check between partners according to Dev
+claim(Dev,Niagree); //validates the non-injective agreement according to Dev
+claim(Dev,Nisynch); //validates the non-injective synchronization according to Dev
+claim (Dev,SKR,FNwkSIntKey); //validates the secrecy of FNwkSIntKey according to Dev
+claim (Dev,SKR,SNwkSIntKey); //validates the secrecy of SNwkSIntKey according to Dev
+claim (Dev,SKR,NwkSEncKey); //validates the secrecy of NwkSEncKey according to Dev
+claim (Dev,SKR,AppSKey); //validates the secrecy of AppSKey according to Dev
+claim (Dev,SKR,JSEncKey); //validates the secrecy of JSEncKey according to Dev
+claim (Dev,SKR,JSIntKey); //validates the secrecy of JSIntKey according to Dev
+} role Join {
+fresh JoinNonce: Nonce;
+fresh MHDRSrv: Nonce;
+fresh NetID: Nonce;
+fresh DevAddr: Nonce;
+fresh DLSettings: Nonce;
+fresh RxDelay: Nonce;
+fresh CFList: Nonce;
+fresh NonceList: Nonce;
+fresh JoinReqType: Nonce;
+var DevNonce: Nonce;
+var MHDRDev: Nonce;
+recv_1 (Dev,Join,(MHDRDev,Dev,Join,DevNonce),{MHDRDev,Dev,Join,DevNonce}k(Dev,Join));
+send_2 (Join,Dev,(MHDRSrv),{{JoinNonce,NetID,DevAddr,DLSettings,RxDelay,CFList,MIC}dec}k(Dev,Join),MIC);
+not match (DevNonce, NonceList);
+macro NonceList=(NonceList, DevNonce);
+claim(Join,Running,Dev,JoinNonce); //checks that Join agrees with Dev on JoinNonce
+claim(Join,Alive); //assures the Aliveness of Join
+claim(Join,Weakagree); //minimum agreement check between partners according to Join
+claim(Join,Niagree); //validates the non-injective agreement according to Join
+claim(Join,Nisynch); //validates the non-injective synchronization according to Join
+claim(Join, SKR, FNwkSIntKey); //validates the secrecy of FNwkSIntKey according to Join
+claim(Join, SKR, SNwkSIntKey); //validates the secrecy of SNwkSIntKey according to Join
+claim(Join, SKR, NwkSEncKey); //validates the secrecy of NwkSEncKey according to Join
+claim(Join, SKR, AppSKey); //validates the secrecy of AppSKey according to Join
+claim(Join, SKR, JSEncKey); //validates the secrecy of JSEncKey according to Join
+claim(Join, SKR, JSIntKey); //validates the secrecy of JSIntKey according to Join
+}
+}

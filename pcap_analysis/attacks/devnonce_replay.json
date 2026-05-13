@@ -1,0 +1,13 @@
+{
+  "name": "devnonce_replay",
+  "description": "Same DevNonce reused across two join attempts. If the NS does not track used DevNonces, a replayed JoinReq gets a fresh JoinAccept — enabling session hijacking. Nisynch FAILS on ED.",
+  "anomaly_trigger": "DevNonce_Replay",
+  "template": "templates/devnonce_replay.spdl",
+  "template_vars": ["deveui", "devnonce", "safe_id"],
+  "max_scenarios": 34,
+  "device_profile": "replay",
+  "expected_claims": [
+    {"protocol_prefix": "Replay", "role_suffix": "ED", "claim_type": "Nisynch", "result": "Fail"},
+    {"protocol_prefix": "Replay", "role_suffix": "NS", "claim_type": "Nisynch", "result": "Ok"}
+  ]
+}

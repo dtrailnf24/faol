@@ -1,0 +1,13 @@
+{
+  "name": "rogue_ns",
+  "description": "Unsolicited JoinAccept observed with no matching JoinReq. Indicates a rogue NS or MITM forcing device re-join under adversary-controlled session keys. Nisynch FAILS on ED.",
+  "anomaly_trigger": "Unsolicited_JoinAccept",
+  "template": "templates/rogue_ns.spdl",
+  "template_vars": ["frame"],
+  "max_scenarios": 2,
+  "device_profile": "normal",
+  "expected_claims": [
+    {"protocol_prefix": "RogueNSframe", "role_suffix": "EDrogue", "claim_type": "Nisynch", "result": "Fail"},
+    {"protocol_prefix": "RogueNSframe", "role_suffix": "NSrogue", "claim_type": "Nisynch", "result": "Ok"}
+  ]
+}

@@ -1,0 +1,50 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SCENARIO: Default AppKey (device {deveui})
+# ─────────────────────────────────────────────────────────────────────────────
+# Device uses a known-public AppKey: {appkey}
+# The adversary can derive AppSKey and NwkSKey.
+# Expected: Secret claims FAIL for appSKey and nwkSKey.
+
+const {appkey_const}: Nonce;  # Public — equals default AppKey {appkey}
+
+protocol DefaultKey{safe_id}(ED{safe_id}, NS{safe_id}) {{
+
+    role ED{safe_id} {{
+        fresh DevNonce: Nonce;
+        var AppNonce:   Nonce;
+
+        send_1(ED{safe_id}, NS{safe_id},
+               ED{safe_id}, NS{safe_id}, DevNonce,
+               {{ED{safe_id}, NS{safe_id}, DevNonce}}{appkey_const});
+
+        recv_2(NS{safe_id}, ED{safe_id},
+               {{AppNonce, NS{safe_id}}}{appkey_const});
+
+        claim(ED{safe_id}, Alive);
+        claim(ED{safe_id}, Weakagree);
+        claim(ED{safe_id}, Niagree);
+        claim(ED{safe_id}, Nisynch);
+        claim(ED{safe_id}, Secret, appSKey({appkey_const}, AppNonce, DevNonce));
+        claim(ED{safe_id}, Secret, nwkSKey({appkey_const}, AppNonce, DevNonce));
+    }}
+
+    role NS{safe_id} {{
+        var DevNonce:    Nonce;
+        fresh AppNonce:  Nonce;
+
+        recv_1(ED{safe_id}, NS{safe_id},
+               ED{safe_id}, NS{safe_id}, DevNonce,
+               {{ED{safe_id}, NS{safe_id}, DevNonce}}{appkey_const});
+
+        send_2(NS{safe_id}, ED{safe_id},
+               {{AppNonce, NS{safe_id}}}{appkey_const});
+
+        claim(NS{safe_id}, Alive);
+        claim(NS{safe_id}, Weakagree);
+        claim(NS{safe_id}, Niagree);
+        claim(NS{safe_id}, Nisynch);
+        claim(NS{safe_id}, Secret, appSKey({appkey_const}, AppNonce, DevNonce));
+        claim(NS{safe_id}, Secret, nwkSKey({appkey_const}, AppNonce, DevNonce));
+    }}
+}}
+

@@ -1,0 +1,54 @@
+// The protocol is running between End Device (Dev) and NS/AS (Srv)
+// The predefined shared key AppKey between Dev and Srv is k(Dev,Srv)
+// dec models a decryption function that is invertible by an encryption function (enc)
+// Declaration of padding strings (pad01, pad02, ...) omitted
+protocol LoRaWAN-OTAA-v1(Dev,Srv)
+{
+role Dev {
+fresh DevNonce: Nonce;
+fresh MHDRDev: Nonce;
+var MHDRSrv: Nonce;
+var SrvNonce: Nonce;
+var NetID: Nonce;
+var DevAddr: Nonce;
+var DLSettings: Nonce;
+var RxDelay: Nonce;
+var CFList: Nonce;
+send_1(Dev,Srv,(MHDRDev, Dev,Srv,DevNonce),{MHDRDev,Dev,Srv,DevNonce}k(Dev,Srv));
+recv_2(Srv,Dev,(MHDRSrv), {{SrvNonce,NetID,DevAddr,DLSettings,RxDelay,CFList}dec}k(Dev,Srv),
+{SrvNonce,MHDRSrv,NetID,DevAddr,DLSettings,RxDelay,CFList}k(Dev,Srv));
+macro AppSKey={pad01,SrvNonce,DevNonce,NetID,pad16}k(Dev,Srv);
+macro NwkSKey={pad02,SrvNonce,DevNonce,NetID,pad16}k(Dev,Srv);
+claim(Dev,Running,Srv,DevNonce); //checks that Dev agrees with Srv on DevNonce
+claim(Dev,Alive); //assures the Aliveness of Dev
+claim(Dev,Weakagree); //minimum agreement check between partners according to Dev
+claim(Dev,Niagree); //validates the non-injective agreement according to Dev
+claim(Dev,Nisynch); //validates the non-injective synchronization according to Dev
+claim (Dev,SKR,AppSKey); //validate the secrecy of AppSKey according to Dev
+claim (Dev,SKR,NwkSKey); //validate the secrecy of NwkSKey according to Dev
+}
+role Srv {
+fresh SrvNonce:Nonce;
+fresh MHDRSrv:Nonce;
+fresh NetID:Nonce;
+fresh DevAddr:Nonce;
+fresh DLSettings:Nonce;
+fresh RxDelay:Nonce;
+fresh CFList:Nonce;
+fresh NonceList:Nonce;
+var DevNonce:Nonce;
+var MHDRDev:Nonce;
+recv_1 (Dev,Srv,(MHDRDev,Dev,Srv,DevNonce), {MHDRDev,Dev,Srv,DevNonce }k(Dev,Srv));
+not match (DevNonce, NonceList);
+send_2 (Srv,Dev,(MHDRSrv ),{{SrvNonce,NetID,DevAddr,DLSettings,RxDelay,CFList}dec}k(Dev,Srv),
+{ SrvNonce,MHDRSrv,NetID,DevAddr,DLSettings,RxDelay,CFList}k(Dev,Srv));
+macro NonceList = (NonceList, DevNonce);
+claim(Srv,Running,Dev,SrvNonce); //checks that Srv agrees with Dev on SrvNonce
+claim(Srv,Alive); //assures the Aliveness of Srv
+claim(Srv,Weakagree); //minimum agreement check between partners according to Srv
+claim(Srv,Niagree); //validates the non-injective agreement according to Srv
+claim(Srv,Nisynch); //validates the non-injective synchronization according to Srv
+claim (Srv,SKR,AppSKey); //validate the secrecy of AppSKey according to Srv
+claim (Srv,SKR,NwkSKey); //validate the secrecy of NwkSKey according to Srv
+}
+}
