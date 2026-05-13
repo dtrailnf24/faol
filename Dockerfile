@@ -14,7 +14,7 @@ FROM python:3.11-slim
 # System packages: tshark for PCAP parsing, graphviz for attack trace images
 # Scyther: use pre-built Linux binary from GitHub release (avoids build toolchain)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        tshark graphviz wget ca-certificates \
+        tshark graphviz wget ca-certificates procps \
     && wget -qO /tmp/scyther.tgz \
        https://github.com/cascremers/scyther/releases/download/v1.3.0/scyther-linux-v1.3.0.tgz \
     && tar xzf /tmp/scyther.tgz -C /tmp \
@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && pip install --no-cache-dir cryptography
 
 COPY --from=builder /src/lwnsimulator /app/lwnsimulator
+RUN chmod +x /app/lwnsimulator
 COPY pcap_analysis/ /app/pcap_analysis/
 COPY models/ /app/models/
 COPY LWN-Simulator-main/config.json /app/LWN-Simulator-main/config.json
@@ -34,7 +35,9 @@ COPY LWN-Simulator-main/config.json /app/LWN-Simulator-main/config.json
 WORKDIR /app/pcap_analysis
 
 ENV SCYTHER_BIN=/usr/local/bin/scyther \
-    LOOPBACK_IFACE=lo
+    LOOPBACK_IFACE=lo \
+    LWN_SIM_BIN=/app/lwnsimulator \
+    LWN_SIM_RUN=/app/LWN-Simulator-main
 
 # Default: run synthetic validation suite. Override CMD to use other modes:
 #   docker run faol python3 lwn_validator.py --pcap /data/capture.pcap

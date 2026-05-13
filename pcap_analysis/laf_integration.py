@@ -80,8 +80,8 @@ LOOPBACK = os.environ.get("LOOPBACK_IFACE", {
 }.get(_sys, "lo0"))
 SEMTECH_EXTRACTOR = HERE / "semtech_extractor.py"
 SCENARIO_BUILDER  = HERE / "scenario_builder.py"
-LWN_SIM_RUN       = Path.home() / "lwnsim_run"
-LWN_SIM_BIN       = LWN_SIM_RUN / ("lwnsimulator.exe" if _sys == "Windows" else "lwnsimulator")
+LWN_SIM_RUN       = Path(os.environ.get("LWN_SIM_RUN", str(Path.home() / "lwnsim_run")))
+LWN_SIM_BIN       = Path(os.environ.get("LWN_SIM_BIN", str(LWN_SIM_RUN / ("lwnsimulator.exe" if _sys == "Windows" else "lwnsimulator"))))
 LWN_SIM_DIR       = ROOT / "LWN-Simulator-main"
 LWN_API           = "http://127.0.0.1:8000/api"
 
