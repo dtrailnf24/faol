@@ -53,7 +53,7 @@ docker run --rm --entrypoint python3 faol laf_integration.py --list-attacks
 docker run --rm --network host --entrypoint python3 faol \
   laf_integration.py \
     --attacks devnonce_replay,fcnt_replay,rogue_ns \
-    --with-simulator --sim-devices normal \
+    --with-simulator --sim-devices abp \
     --duration 20 --output /tmp/faol_out
 ```
 
