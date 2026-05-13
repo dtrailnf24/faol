@@ -1,10 +1,10 @@
-# FAoL — Formal Analysis of Simulated Adversarial LoRaWAN Traffic
+# FAoL: Formal Analysis of Simulated Adversarial LoRaWAN Traffic
 
-**David Trail · Bhaskar Rimal · University of Idaho**
+**David Trail | Bhaskar Rimal | University of Idaho**
 
 FAoL is an automated pipeline that ingests LoRaWAN traffic captures (real or synthetic), detects structural anomalies corresponding to five known attack classes, generates [Scyther](https://github.com/cascremers/scyther) SPDL formal models, and verifies security properties under the Dolev-Yao adversary model.
 
-![FAoL Pipeline](\docs\FAoL_Architecture.png)
+![FAoL Pipeline](docs/FAoL_Architecture.png)
 
 ---
 
@@ -17,7 +17,7 @@ git clone --recurse-submodules https://github.com/YOUR_USERNAME/faol.git
 cd faol
 docker build -t faol .
 
-# Reproduce all 5 synthetic test cases (Table I in the paper)
+# Reproduce all 5 synthetic test cases
 docker run --rm faol
 ```
 
@@ -43,7 +43,7 @@ docker run --rm -v /path/to/data:/data faol bash -c "
   python3 scenario_builder.py /data/sessions.json /data/scenario.spdl"
 ```
 
-### Attack injection with LWN-Simulator (Section V experiments)
+### Attack injection with LWN-Simulator
 
 ```bash
 # List available attack types
@@ -93,17 +93,6 @@ Dockerfile                  # Reproducible build (verified)
 docker-compose.yml          # Optional: mount local PCAPs via ./data
 ```
 
----
-
-## Real-World Datasets
-
-The city captures evaluated in Section VI (Brno, Liege, Graz, Vienna) are from:
-
-> Povalac et al., "LoRaWAN Traffic Dataset from European LoRaWAN Networks," *Sensors*, vol. 23, no. 17, 2023. [doi:10.3390/s23177333](https://doi.org/10.3390/s23177333)
-
-These are not distributed here. Download them from the dataset source and mount via `-v /path/to/data:/data`.
-
----
 
 ## Dependencies
 
@@ -125,13 +114,3 @@ These are not distributed here. Download them from the dataset source and mount 
 These are documentation only — the FAoL runtime uses the templates in `pcap_analysis/attacks/templates/`.
 
 ---
-
-## Citation
-
-```bibtex
-@article{trail2025faol,
-  title   = {{FAoL}: Formal Analysis of Simulated Adversarial {LoRaWAN} Traffic},
-  author  = {Trail, David and Rimal, Bhaskar},
-  year    = {2025}
-}
-```
