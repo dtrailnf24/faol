@@ -1,0 +1,15 @@
+# Virtual environments
+.venv/
+pcap_analysis/.venv/
+
+# Precompiled macOS binaries — rebuilt inside Docker
+lwnsimulator
+
+# IDE / tool config
+.idea/
+.git/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
