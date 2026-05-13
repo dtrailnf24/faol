@@ -111,6 +111,6 @@ docker-compose.yml          # Optional: mount local PCAPs via ./data
 
 > Eldefrawy et al., "Formal security analysis of LoRaWAN," *Computer Networks*, vol. 148, pp. 328–339, 2019. [doi:10.1016/j.comnet.2018.11.017](https://doi.org/10.1016/j.comnet.2018.11.017)
 
-These are documentation only — the FAoL runtime uses the templates in `pcap_analysis/attacks/templates/`.
+These are documentation only, the FAoL pipeline uses the templates in `pcap_analysis/attacks/templates/`.
 
 ---
