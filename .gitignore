@@ -16,11 +16,3 @@ lwnsimulator
 lwnsimulator.exe
 lwnsimulator_linux
 
-# Data — not needed to run the tool; city PCAPs are 3rd-party
-data/
-
-# Legacy
-legacy/
-
-# Claude Code project settings
-.claude/
