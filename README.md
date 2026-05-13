@@ -30,7 +30,7 @@ Expected output: `Synthetic validation: ALL PASSED`
 ### Analyze a LoRaTap PCAP (over-the-air sniffer format)
 
 ```bash
-docker run --rm -v /path/to/data:/data faol bash -c "
+docker run --rm -v /path/to/data:/data --entrypoint bash faol -c "
   python3 trace_extractor.py /data/capture.pcap /data/sessions.json &&
   python3 scenario_builder.py /data/sessions.json /data/scenario.spdl"
 ```
@@ -38,7 +38,7 @@ docker run --rm -v /path/to/data:/data faol bash -c "
 ### Analyze a Semtech UDP/1700 PCAP (gateway format)
 
 ```bash
-docker run --rm -v /path/to/data:/data faol bash -c "
+docker run --rm -v /path/to/data:/data --entrypoint bash faol -c "
   python3 semtech_extractor.py /data/capture.pcap /data/sessions.json &&
   python3 scenario_builder.py /data/sessions.json /data/scenario.spdl"
 ```
@@ -47,11 +47,11 @@ docker run --rm -v /path/to/data:/data faol bash -c "
 
 ```bash
 # List available attack types
-docker run --rm faol python3 laf_integration.py --list-attacks
+docker run --rm --entrypoint python3 faol laf_integration.py --list-attacks
 
 # Inject attacks into synthetic background traffic
-docker run --rm --network host faol \
-  python3 laf_integration.py \
+docker run --rm --network host --entrypoint python3 faol \
+  laf_integration.py \
     --attacks devnonce_replay,fcnt_replay,rogue_ns \
     --with-simulator --sim-devices normal \
     --duration 20 --output /tmp/faol_out
